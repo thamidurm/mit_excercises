@@ -6,67 +6,30 @@ Op -> + | - | * | /
 Expr -> Num
 */
 
+#include <iostream>
 
+#include "Exception.h"
+#include "Lexer.h"
+#include "Parser.h"
 
-#include "pch.h"
-
-using namespace ctpg;
-using namespace ctpg::buffers;
-
-int to_int(std::string_view sv)
-{
-    int i = 0;
-    std::from_chars(sv.data(), sv.data() + sv.size(), i);
-    return i;
-}
-
-constexpr nterm<int> expr("expr");
-
-constexpr char number_pattern[] = "[0-9][0-9]*";
-constexpr regex_term<number_pattern> number("number");
-
-constexpr char_term o_plus('+', 1);
-constexpr char_term o_minus('-', 1);
-constexpr char_term o_mul('*', 2);
-constexpr char_term o_div('/', 2);
-
-constexpr parser p(
-	expr,
-	terms(o_plus, o_minus, o_div, o_mul, '(', ')', number),
-	nterms(expr),
-	rules(
-        expr('(', expr, ')') >= [](char, int value, char)
-        {
-            return value;
-        },
-        expr(expr, '+', expr) >= [](int value1, char, int value2)
-        {
-	        return value1 + value2;
-        },
-        expr(expr, '-', expr) >= [](int value1, char, int value2)
-        {
-            return value1 - value2;
-        },
-        expr(expr, '/', expr) >= [](int value1, char, int value2)
-        {
-            return value1 / value2;
-        },
-        expr(expr, '*', expr) >= [](int value1, char, int value2)
-        {
-            return value1 * value2;
-        },
-		expr(number) >= to_int
-	)
-);
-
-constexpr size_t BufLen = 512;
+constexpr size_t BufSize = 512u;
 int main()
 {
-    char expression[BufLen];
-    std::cin.getline(expression, BufLen);
-    auto result = p.parse(string_buffer(expression), std::cerr);
-    bool valid = result.has_value();
-    if (valid)
-        std::cout << expression << " = " << result.value() << std::endl;
-    return valid ? 0 : -1;
+	Lexer lexer;
+	Parser parser;
+	// Unary operators need to be within brackets
+	try
+	{
+		char buffer[BufSize];
+		std::cout << "Enter expression: ";
+		std::cin.getline(buffer, BufSize);
+		auto tokens = lexer.tokenize(buffer);
+		auto result = parser.parse(tokens);
+		std::cout << "Answer is: " << result;
+	}
+	catch (Exception& e)
+	{
+		std::cerr << e.getMessage() << std::endl;
+		return 1;
+	}
 }

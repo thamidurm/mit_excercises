@@ -18,6 +18,9 @@
     <ClInclude Include="StaticStack.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DynamicStackLL.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="DynamicStack.h">
       <Filter>Header Files</Filter>
     </ClInclude>
